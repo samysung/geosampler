@@ -1,0 +1,7 @@
+# Include the license file
+include LICENSE
+# Include the version file
+include VERSION
+# exclude tests from package
+recursive-exclude tests *
+exclude tests
