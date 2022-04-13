@@ -1,3 +1,4 @@
 python>=3.9
 scikit-learn>=0.23.1
+shapely
 geopandas>=0.10.0
