@@ -1,0 +1,16 @@
+site_name: GeoSampler
+# ext: mkdocs mkdocstrings(docstring) mkdocs-material(theme) mike(versioning) mkapi(docstring)
+theme:
+  name: material
+
+plugins:
+- search
+- mkapi:
+      src_dirs: [geosampler.api]
+nav:
+  - index.md
+markdown_extensions:
+  - pymdownx.arithmatex
+
+extra_javascript:  # for pymdownx.arithmatex
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML

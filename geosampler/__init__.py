@@ -1,2 +1,5 @@
-import numpy as np
-import geopandas as gpd
+import numpy
+import geopandas
+
+np = numpy
+gpd = geopandas

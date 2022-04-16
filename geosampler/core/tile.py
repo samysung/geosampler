@@ -2,9 +2,12 @@ from typing import List, Union, Generator, Dict
 from geosampler import gpd, np
 from geosampler.core.shape import create_box_from_bounds, box
 
+Overlap = Union[float, List[float]]
+TileSize = Union[int, List]
 
-def tile(bounds: List, tile_size: Union[int, List] = 256, overlap: Union[int, List] = 0,
-         strict_inclusion: bool = True) -> Generator[Dict]:
+
+def tile(bounds: List, tile_size: TileSize = 256, overlap: Overlap = 0,
+         strict_inclusion: bool = True) -> Generator[Dict, None, None]:
     """
     Simple function to tile with a regular step in X-axis and Y-axis
     Parameters

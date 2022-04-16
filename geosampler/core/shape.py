@@ -39,7 +39,7 @@ def create_box_from_bounds(x_min: float, y_min: float, x_max: float, y_max: floa
 
     """
 
-    return box(x_min,  y_min, x_max,  y_max)
+    return box(x_min, y_min, x_max, y_max)
 
 
 def create_polygon_from_bounds(x_min: float, y_min: float, x_max: float, y_max: float) -> box:
@@ -57,7 +57,7 @@ def create_polygon_from_bounds(x_min: float, y_min: float, x_max: float, y_max: 
     shapely.geometry.box
     """
 
-    return mapping(box(x_min,  y_min, x_max,  y_max))
+    return mapping(box(x_min, y_min, x_max, y_max))
 
 
 def print_gdf(gdf: gpd.GeoDataFrame, filename: str, driver: Optional[str] = None):
