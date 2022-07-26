@@ -23,11 +23,10 @@ class TiledSamplingInterface(SamplingInterface, Protocol):
 @dataclass
 class GridSampling(TiledSamplingInterface, Callable):
     tiler: tile.SimpleTiler
-    with_box: bool = False
 
     def sample(self) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
 
-        return self._get_output(gdf=self._get_tiled_gdf())
+        return GridSampling._get_output(gdf=self._get_tiled_gdf())
 
     def _get_tiled_gdf(self) -> gpd.GeoDataFrame:
         if isinstance(self.tiler.tiled_gdf, gpd.GeoDataFrame):
@@ -35,10 +34,11 @@ class GridSampling(TiledSamplingInterface, Callable):
         else:
             return self.tiler.tile()
 
-    def _get_output(self, gdf) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
+    @staticmethod
+    def _get_output(gdf) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
         point_gdf = gdf.apply(lambda x: x.geometry.centroid, axis=1)
         point_gdf = gpd.GeoDataFrame(point_gdf, crs=gdf.crs)
-        output = (point_gdf, gdf) if self.with_box else point_gdf
+        output = (gdf, point_gdf)
         return output
 
     def __call__(self) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
@@ -62,7 +62,7 @@ class RandomSampling(GridSampling):
             return self._get_output(gdf=gdf)
 
         gdf = gdf.sample(n=self.n_sample)
-        return self._get_output(gdf=gdf)
+        return GridSampling._get_output(gdf=gdf)
 
 
 @dataclass
@@ -94,12 +94,11 @@ class SystematicSampling(RandomSampling):
     .. _web_link: https://en.wikipedia.org/wiki/Systematic_sampling
 
     """
-
     interval: int = 1
     oversampling: bool = False
     weights: Union[str, List, None] = field(default=None)
     random_starting_point: bool = True
-    max_cycle_number: int = 10
+    max_cycle_number: int = 1
     _starting_point: int = field(init=False, repr=False)
     _picked: List = field(default_factory=lambda: list())
 
