@@ -1,10 +1,13 @@
 import random
-
 import logging
 from dataclasses import dataclass, field
-from typing import Union, Tuple, Protocol, runtime_checkable, Callable, List
+from typing import Union, Tuple, Protocol, runtime_checkable, Callable, List, Optional, Dict
+
 import geopandas as gpd
-from geosampler.api import tile
+
+from .tile import SimpleTiler, QuadTreeTiler
+from ..core.types import URI
+
 
 logger = logging.getLogger(__name__)
 
@@ -15,18 +18,10 @@ class SamplingInterface(Protocol):
     def sample(self) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]: ...
 
 
-class TiledSamplingInterface(SamplingInterface, Protocol):
-
-    tiler: tile.TilerInterface
-
-
 @dataclass
-class GridSampling(TiledSamplingInterface, Callable):
-    tiler: tile.SimpleTiler
+class SimpleTiledSamplingInterface:
 
-    def sample(self) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
-
-        return GridSampling._get_output(gdf=self._get_tiled_gdf())
+    tiler: SimpleTiler
 
     def _get_tiled_gdf(self) -> gpd.GeoDataFrame:
         if isinstance(self.tiler.tiled_gdf, gpd.GeoDataFrame):
@@ -41,12 +36,32 @@ class GridSampling(TiledSamplingInterface, Callable):
         output = (gdf, point_gdf)
         return output
 
+
+@dataclass
+class QuadTreeSamplingInterface:
+
+    tiler: QuadTreeTiler
+
+
+@dataclass
+class GridSampling(SamplingInterface, SimpleTiledSamplingInterface, Callable):
+
+    def sample(self) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
+
+        return GridSampling._get_output(gdf=self._get_tiled_gdf())
+
     def __call__(self) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
         return self.sample()
 
 
+@runtime_checkable
+class PickableSamplingInterface(Protocol):
+
+    n_sample: int = 50
+
+
 @dataclass
-class RandomSampling(GridSampling):
+class RandomSampling(SamplingInterface, SimpleTiledSamplingInterface, PickableSamplingInterface):
     n_sample: int = 50
 
     def sample(self) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
@@ -66,7 +81,26 @@ class RandomSampling(GridSampling):
 
 
 @dataclass
-class SystematicSampling(RandomSampling):
+class MaskedSamplingInterface:
+
+    n_sample: Union[Dict, int] = 50
+    mask: Optional[URI] = None
+    field_name: Optional[str] = None
+    min_percentage_of_intersection: Optional[float] = None
+    max_percentage_of_intersection: Optional[float] = None
+    _n_sample: Union[Dict, int] = field(init=False)
+
+
+@dataclass
+class WeightedCyclicIteratorInterface:
+    weights: Union[str, List, None] = field(default=None)
+    interval: int = 1
+    random_starting_point: bool = True
+    max_cycle_number: int = 1
+
+
+@dataclass
+class SystematicSampling(SamplingInterface, WeightedCyclicIteratorInterface, SimpleTiledSamplingInterface):
     """
     from wikipedia:
     systematic sampling is a statistical method
@@ -82,11 +116,7 @@ class SystematicSampling(RandomSampling):
 
     Parameters
     ----------
-     interval: int default=1
-        length of the step used to travel in the study space
-     oversampling: bool default=False
-     weights: Optional[str] default=None
-     random_starting_point: bool default=True
+
 
     References
     ----------
@@ -94,17 +124,16 @@ class SystematicSampling(RandomSampling):
     .. _web_link: https://en.wikipedia.org/wiki/Systematic_sampling
 
     """
-    interval: int = 1
+
     oversampling: bool = False
-    weights: Union[str, List, None] = field(default=None)
-    random_starting_point: bool = True
-    max_cycle_number: int = 1
-    _starting_point: int = field(init=False, repr=False)
-    _picked: List = field(default_factory=lambda: list())
+    _starting_point: int = field(init=False)
+    _picked: List = field(init=False, default_factory=lambda: list())
+    _sample_polygon : bool = field(init=False, default=False)
 
     def __post_init__(self):
         self._get_tiled_gdf()
-        self._starting_point = random.randint(0, len(self.tiler.tiled_gdf) - 1)
+        self._starting_point = random.randint(0, len(self.tiler.tiled_gdf) - 1) \
+            if self.random_starting_point is True else 0
         match self.weights:
             case None:
                 self.weights = [1 for i in range(len(self.tiler.tiled_gdf))]

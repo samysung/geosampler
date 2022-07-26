@@ -24,53 +24,44 @@ Params to test
 tile_size, bounds, extent, overlap, strict_inclusion, ops, output_file
 """
 test_simple_tiler_data = [
-    (64, t_bounds, test_crs, None, 15, False, "intersects", True, False),
-    (32, None, None, str(path_to_data), 0, True, "intersects", False, True),
-    (128, None, test_crs, geodf, 25, True, "within", True, False)
+    (64, t_bounds, test_crs, None, 15, False, "intersects", True),
+    (32, None, None, str(path_to_data), 0, True, "intersects", False),
+    (128, None, test_crs, geodf, 25, True, "within", True)
 ]
 
 
-@pytest.mark.parametrize("tile_size, bounds, crs, extent, overlap, strict_inclusion, predicate, tile, with_box",
+@pytest.mark.parametrize("tile_size, bounds, crs, extent, overlap, strict_inclusion, predicate, tile",
                          test_simple_tiler_data)
 def test_grid_sampling(tile_size: int, bounds: List, crs: str,
                        extent: Union[gpd.GeoDataFrame, str, Path], overlap: int, strict_inclusion: bool,
-                       predicate: str, tile: bool, with_box: bool) -> None:
+                       predicate: str, tile: bool) -> None:
 
     simple_tiler = SimpleTiler(tile_size=tile_size, bounds=bounds, crs=crs, extent=extent,
                                overlap=overlap, strict_inclusion=strict_inclusion, predicate=predicate)
     if tile:
         simple_tiler.tile()
-    grid_sampler = GridSampling(tiler=simple_tiler, with_box=with_box)
+    grid_sampler = GridSampling(tiler=simple_tiler)
     output = grid_sampler.sample()
     if ~tile:
         simple_tiler.tile()
-    if with_box:
-        assert len(output) == 2
-        assert len(output[0]) == len(simple_tiler.tiled_gdf)
-        assert len(output[1]) == len(simple_tiler.tiled_gdf)
-    else:
-        assert isinstance(output, gpd.GeoDataFrame)
-        assert len(output) == len(simple_tiler.tiled_gdf)
+
+    assert isinstance(output, gpd.GeoDataFrame)
+    assert len(output) == len(simple_tiler.tiled_gdf)
 
 
-@pytest.mark.parametrize("tile_size, bounds, crs, extent, overlap, strict_inclusion, predicate, tile, with_box",
+@pytest.mark.parametrize("tile_size, bounds, crs, extent, overlap, strict_inclusion, predicate, tile",
                          test_simple_tiler_data)
 def test_random_sampling(tile_size: int, bounds: List, crs: str,
                          extent: Union[gpd.GeoDataFrame, str, Path], overlap: int, strict_inclusion: bool,
-                         predicate: str, tile: bool, with_box: bool) -> None:
+                         predicate: str, tile: bool) -> None:
     simple_tiler = SimpleTiler(tile_size=tile_size, bounds=bounds, crs=crs, extent=extent,
                                overlap=overlap, strict_inclusion=strict_inclusion, predicate=predicate)
 
     simple_tiler.tile()
     gdf = simple_tiler.tiled_gdf
     n_sample = random.randint(1, len(gdf) - 1)
-    random_sampler = RandomSampling(tiler=simple_tiler, with_box=with_box, n_sample=n_sample)
+    random_sampler = RandomSampling(tiler=simple_tiler,n_sample=n_sample)
     output = random_sampler.sample()
 
-    if with_box:
-        assert len(output) == 2
-        assert len(output[0]) == n_sample
-        assert len(output[1]) == n_sample
-    else:
-        assert isinstance(output, gpd.GeoDataFrame)
-        assert len(output) == n_sample
+    assert isinstance(output, gpd.GeoDataFrame)
+    assert len(output) == n_sample
