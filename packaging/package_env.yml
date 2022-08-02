@@ -1,4 +1,4 @@
-name: odeon
+name: geosampler
 channels:
   - conda-forge
   - defaults
@@ -6,4 +6,4 @@ dependencies:
   - pip==22.0.4
   - geopandas>=0.10
   - pyogrio
-  -pygeos
+  - pygeos
