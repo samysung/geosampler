@@ -6,3 +6,5 @@ dependencies:
   - pip==22.0.4
   - geopandas>=0.10
   - rasterio
+  - pyogrio
+  -pygeos

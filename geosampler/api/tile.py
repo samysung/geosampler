@@ -2,6 +2,7 @@ from pathlib import Path
 import logging
 from typing import List, Optional, Any, Union, Tuple, Protocol, Dict, runtime_checkable
 from dataclasses import dataclass, field
+import json
 import geopandas as gpd
 from geosampler.core.tile import tile, Overlap, TileSize, build_quad_tree, QuadTree, VALID_CRITERION
 from geosampler.core.shape import load_polygon_from_wkt, print_gdf
@@ -155,6 +156,17 @@ class QuadTreeTiler:
     def print(self, filename: Union[str, Path], driver: Optional[str] = None):
         filename = str(filename)
         sp = filename.split(".")
-        for k in self.quad_tree.levels.keys():
-            f = f"{sp[0]}-{k}.{sp[1]}"
-            print_gdf(self.quad_tree.levels[k], f, driver)
+        dictionary: Dict = {f'layer-{str(k)}':  f"{sp[0]}-{k}.{sp[1]}" for k in self.quad_tree.levels.keys()}
+        for v in dictionary.values():
+            print_gdf(v, f, driver)
+
+        with open(f'{sp[0]}.json', "w") as outfile:
+            json.dump(dictionary, outfile)
+
+    @staticmethod
+    def load(filename: str) -> QuadTree:
+
+        with open(filename) as json_file:
+            dictionary = json.load(json_file)
+        return QuadTree(levels={str(k).split("-")[1]: gpd.read_file(v) for k, v in dictionary})
+
