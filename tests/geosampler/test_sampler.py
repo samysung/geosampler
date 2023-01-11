@@ -83,6 +83,8 @@ test_weighted_cyclic_sampling_data: List = [
 @pytest.mark.parametrize("tile_size, bounds, crs, extent, overlap, strict_inclusion, predicate, tile",
                          test_simple_tiler_data)
 """
+
+
 def test_systematic_sampling(
     n_sample: Union[Dict, int] = 50,
     mask: Optional[URI] = None,
