@@ -36,8 +36,9 @@ class SimpleTiledSamplingInterface:
 
     @staticmethod
     def get_output(gdf) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
+        assert isinstance(gdf, gpd.GeoDataFrame)
         point_gdf = gdf.apply(lambda x: x.geometry.centroid, axis=1)
-        point_gdf = gpd.GeoDataFrame(point_gdf, crs=gdf.crs)
+        point_gdf = gpd.GeoDataFrame(gdf, crs=gdf.crs, geometry="geometry")
         output = (gdf, point_gdf)
         return output
 
@@ -54,18 +55,18 @@ class GridSampling(SamplingInterface, SimpleTiledSamplingInterface, Callable):
     def sample(self) -> Union[gpd.GeoDataFrame, Sequence[gpd.GeoDataFrame], Dict[str, gpd.GeoDataFrame]]:
         return GridSampling.get_output(gdf=self.get_tiled_gdf())
 
-    def __call__(self) -> Union[gpd.GeoDataFrame, Sequence[gpd.GeoDataFrame], Dict[gpd.GeoDataFrame]]:
+    def __call__(self) -> Union[gpd.GeoDataFrame, Sequence[gpd.GeoDataFrame], Dict[str, gpd.GeoDataFrame]]:
         return self.sample()
 
 
-@runtime_checkable
-class PickableSamplingInterface(Protocol):
+@dataclass
+class PickableSamplingInterface:
 
     n_sample: int = 50
 
 
 @dataclass
-class RandomSampling(GridSampling, PickableSamplingInterface):
+class RandomSampling(PickableSamplingInterface, GridSampling):
 
     def sample(self) -> Union[gpd.GeoDataFrame, Sequence[gpd.GeoDataFrame], Dict[str, gpd.GeoDataFrame]]:
 
@@ -238,8 +239,7 @@ class WeightedCyclicSamplingInterface(SamplingInterface):
 
 
 @dataclass
-class SystematicSampling(SamplingInterface,
-                         WeightedCyclicSamplingInterface,
+class SystematicSampling(WeightedCyclicSamplingInterface,
                          MaskedSamplingInterface,
                          SimpleTiledSamplingInterface):
     """

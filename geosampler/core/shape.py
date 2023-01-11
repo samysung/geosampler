@@ -27,7 +27,7 @@ def intersection_reach_surface_criteria(gdf: gpd.GeoDataFrame,
             raise AttributeError(f' the value of attribute how {how} is not valid')
 
 
-def pick_one(gdf: gpd.GeoDataFrame) -> Optional[gpd.geoseries]:
+def pick_one(gdf: gpd.GeoDataFrame) -> Optional[gpd.GeoSeries]:
     match len(gdf):
         case _ if len(gdf) < 1:
             return None

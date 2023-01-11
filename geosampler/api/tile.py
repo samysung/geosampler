@@ -156,9 +156,12 @@ class QuadTreeTiler:
     def print(self, filename: Union[str, Path], driver: Optional[str] = None):
         filename = str(filename)
         sp = filename.split(".")
-        dictionary: Dict = {f'layer-{str(k)}':  f"{sp[0]}-{k}.{sp[1]}" for k in self.quad_tree.levels.keys()}
-        for v in dictionary.values():
-            print_gdf(v, f, driver)
+        dictionary: Dict = dict()
+
+        for k, v in self.quad_tree.levels.items():
+            f = f"{sp[0]}-{k}.{sp[1]}"
+            print_gdf(gdf=v, filename=f, driver=driver)
+            dictionary[f'layer-{str(k)}'] = f
 
         with open(f'{sp[0]}.json', "w") as outfile:
             json.dump(dictionary, outfile)
