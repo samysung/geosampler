@@ -1,11 +1,6 @@
-# Odeon
+# Geosampler
 
 ## Why this project?
-
-
-
-## The code has no interest!
-
 
 
 ## Installation
@@ -15,15 +10,16 @@
 As Gdal dependencies are presents it's preferable to
 install dependencis via conda before installing the package:
 ```bash
-  git clone https://github.com/samysung/python_ml_project_skeleton
-  cd python_ml_project_skeleton/packaging
+  git clone https://github.com/samysung/geosampler
+  cd geosampler/packaging
   conda env create -f package_env.yml
   ```
 ### From pip:
 
   ```bash
-  pip install odeon
-  or pip install odeon==vx.x # for a specific version
+  pip install geosampler
+  # or
+  pip install geosampler==X.Y # for a specific version
   ```
 
 <details>
@@ -44,9 +40,7 @@ install dependencis via conda before installing the package:
   #### From source using pip:
 
   ```bash
-  pip install git+https://github.com/samysung/python_ml_project_skeleton
+  pip install git+https://github.com/samysung/geosampler
   ```
 
 </details>
-
-## Project Architecture
